@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.makeitso.R.drawable as AppIcon
 import com.example.makeitso.R.string as AppText
 import com.example.makeitso.common.composable.*
@@ -40,8 +41,12 @@ fun SettingsScreen(
   openScreen: (String) -> Unit,
   viewModel: SettingsViewModel = hiltViewModel()
 ) {
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+    initialValue = SettingsUiState()
+  )
+
   SettingsScreenContent(
-    uiState = viewModel.uiState,
+    uiState = uiState,
     onLoginClick = { viewModel.onLoginClick(openScreen) },
     onSignUpClick = { viewModel.onSignUpClick(openScreen) },
     onSignOutClick = { viewModel.onSignOutClick(restartApp) },

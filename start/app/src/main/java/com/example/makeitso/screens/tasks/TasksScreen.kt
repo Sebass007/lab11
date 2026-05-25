@@ -84,10 +84,10 @@ fun TasksScreenContent(
         endAction = { onSettingsClick(openScreen) }
       )
 
-      Spacer(modifier = Modifier.smallSpacer())
+      val tasks = viewModel.tasks.collectAsStateWithLifecycle(emptyList())
 
       LazyColumn {
-        items(emptyList<Task>(), key = { it.id }) { taskItem ->
+        items(tasks.value, key = { it.id }) { taskItem ->
           TaskItem(
             task = taskItem,
             options = listOf(),

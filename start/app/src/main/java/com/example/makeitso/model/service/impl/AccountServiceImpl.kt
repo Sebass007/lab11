@@ -37,12 +37,23 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth) : A
 
   override val currentUser: Flow<User>
     get() = callbackFlow {
-      val listener =
+      val authStateListener =
         FirebaseAuth.AuthStateListener { auth ->
           this.trySend(auth.currentUser?.let { User(it.uid, it.isAnonymous) } ?: User())
         }
-      auth.addAuthStateListener(listener)
-      awaitClose { auth.removeAuthStateListener(listener) }
+
+      val idTokenListener =
+        FirebaseAuth.IdTokenListener { auth ->
+          this.trySend(auth.currentUser?.let { User(it.uid, it.isAnonymous) } ?: User())
+        }
+
+      auth.addAuthStateListener(authStateListener)
+      auth.addIdTokenListener(idTokenListener)
+
+      awaitClose {
+        auth.removeAuthStateListener(authStateListener)
+        auth.removeIdTokenListener(idTokenListener)
+      }
     }
 
   override suspend fun authenticate(email: String, password: String) {
@@ -58,7 +69,8 @@ class AccountServiceImpl @Inject constructor(private val auth: FirebaseAuth) : A
   }
 
   override suspend fun linkAccount(email: String, password: String) {
-    //TODO
+    val credential = EmailAuthProvider.getCredential(email, password)
+    auth.currentUser!!.linkWithCredential(credential).await()
   }
 
   override suspend fun deleteAccount() {
